@@ -1,0 +1,35 @@
+# Java 编译产物
+target/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# 前端
+node_modules/
+dist/
+.DS_Store
+
+# 日志 & 运行时
+*.log
+logs/
+work/
+dump.rdb
+derby.log
+
+# 敏感配置（本地环境变量）
+.env
+.env.local
+.env.*.local
+
+# 临时文件
+monitor_metrics.csv
+repomix-output-2.txt

@@ -1,0 +1,30 @@
+{
+  "requiredSkills": ["急救", "医疗"],
+  "topK": 3,
+  "volunteers": [
+    {
+      "userId": 1,
+      "realName": "张三",
+      "skills": "急救,医疗",
+      "total_hours": 100,
+      "credit_balance": 500,
+      "attendance_rate": 0.9
+    },
+    {
+      "userId": 2,
+      "realName": "李四",
+      "skills": "教育,辅导",
+      "total_hours": 50,
+      "credit_balance": 200,
+      "attendance_rate": 0.8
+    },
+    {
+      "userId": 3,
+      "realName": "王五",
+      "skills": "急救,交通引导",
+      "total_hours": 80,
+      "credit_balance": 300,
+      "attendance_rate": 0.85
+    }
+  ]
+}

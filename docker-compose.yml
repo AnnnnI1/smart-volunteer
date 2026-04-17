@@ -1,0 +1,209 @@
+version: '3.8'
+
+networks:
+  volunteer-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  redis-data:
+
+services:
+
+  # ──────────────────────── 基础中间件 ────────────────────────
+
+  mysql:
+    image: mysql:8.0
+    container_name: volunteer-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: smart_volunteer
+      MYSQL_USER: userstest
+      MYSQL_PASSWORD: "123456"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - volunteer-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    container_name: volunteer-redis
+    networks:
+      - volunteer-net
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  nacos:
+    image: nacos/nacos-server:v2.3.0
+    container_name: volunteer-nacos
+    environment:
+      MODE: standalone
+      NACOS_AUTH_ENABLE: "false"
+      JVM_XMS: 256m
+      JVM_XMX: 256m
+    ports:
+      - "8848:8848"
+    networks:
+      - volunteer-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8848/nacos/v1/console/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+
+  rocketmq-namesrv:
+    image: apache/rocketmq:4.9.8
+    container_name: volunteer-namesrv
+    command: sh mqnamesrv
+    environment:
+      JAVA_OPT_EXT: "-Xms256m -Xmx256m"
+    networks:
+      - volunteer-net
+
+  rocketmq-broker:
+    image: apache/rocketmq:4.9.8
+    container_name: volunteer-broker
+    command: sh mqbroker -c /opt/broker.conf
+    environment:
+      JAVA_OPT_EXT: "-Xms512m -Xmx512m"
+    volumes:
+      - ./docker/rocketmq/broker.conf:/opt/broker.conf
+    depends_on:
+      - rocketmq-namesrv
+    networks:
+      - volunteer-net
+
+  # ──────────────────────── 后端微服务 ────────────────────────
+
+  gateway:
+    build:
+      context: ./smart-volunteer-backend/smart-volunteer-gateway
+    container_name: volunteer-gateway
+    ports:
+      - "9090:9090"
+    environment:
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+    depends_on:
+      nacos:
+        condition: service_healthy
+    networks:
+      - volunteer-net
+
+  user-service:
+    build:
+      context: ./smart-volunteer-backend/smart-volunteer-user
+    container_name: volunteer-user
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8"
+      SPRING_DATASOURCE_USERNAME: userstest
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+    networks:
+      - volunteer-net
+
+  activity-service:
+    build:
+      context: ./smart-volunteer-backend/smart-volunteer-activity
+    container_name: volunteer-activity
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8"
+      SPRING_DATASOURCE_USERNAME: userstest
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rocketmq-broker:
+        condition: service_started
+    networks:
+      - volunteer-net
+
+  ai-service:
+    build:
+      context: ./smart-volunteer-backend/smart-volunteer-ai
+    container_name: volunteer-ai
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8"
+      SPRING_DATASOURCE_USERNAME: userstest
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      PYTHON_AI_URL: http://python-ai:9094
+    depends_on:
+      mysql:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      python-ai:
+        condition: service_started
+    networks:
+      - volunteer-net
+
+  credit-service:
+    build:
+      context: ./smart-volunteer-backend/smart-volunteer-credit
+    container_name: volunteer-credit
+    environment:
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8"
+      SPRING_DATASOURCE_USERNAME: userstest
+      SPRING_DATASOURCE_PASSWORD: "123456"
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_CLOUD_NACOS_DISCOVERY_SERVER_ADDR: nacos:8848
+      ROCKETMQ_NAME_SERVER: rocketmq-namesrv:9876
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nacos:
+        condition: service_healthy
+      rocketmq-broker:
+        condition: service_started
+    networks:
+      - volunteer-net
+
+  # ──────────────────────── Python AI ────────────────────────
+
+  python-ai:
+    build:
+      context: ./python-ai
+    container_name: volunteer-python-ai
+    networks:
+      - volunteer-net
+
+  # ──────────────────────── 前端 ────────────────────────
+
+  frontend:
+    build:
+      context: ./smart-volunteer-frontend
+    container_name: volunteer-frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - volunteer-net

@@ -1,0 +1,27 @@
+server:
+  port: 9093
+
+spring:
+  application:
+    name: smart-volunteer-ai
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+    username: userstest
+    password: YOUR_DB_PASSWORD
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+
+# DeepSeek API 配置
+deepseek:
+  api:
+    url: https://api.deepseek.com/v1/chat/completions
+    key: YOUR_DEEPSEEK_API_KEY
+    model: deepseek-chat
+
+# Python AI 微服务地址
+python:
+  ai:
+    url: http://localhost:9094

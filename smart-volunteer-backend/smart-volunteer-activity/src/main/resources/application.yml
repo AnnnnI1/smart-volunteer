@@ -1,0 +1,47 @@
+server:
+  port: 9092
+
+spring:
+  application:
+    name: smart-volunteer-activity
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/smart_volunteer?useSSL=false&serverTimezone=UTC&characterEncoding=utf8
+    username: userstest
+    password: YOUR_DB_PASSWORD
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    date-format: yyyy-MM-dd'T'HH:mm:ss
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+
+rocketmq:
+  name-server: localhost:9876
+  producer:
+    group: activity-producer-group
+
+# Python AI 微服务地址
+python:
+  ai:
+    url: http://localhost:9094
+
+# Spring Boot Actuator（压测监控用）
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  endpoint:
+    health:
+      show-details: never

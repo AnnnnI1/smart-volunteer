@@ -1,0 +1,51 @@
+server:
+  port: 9090
+
+spring:
+  application:
+    name: smart-volunteer-gateway
+  codec:
+    max-in-memory-size: 10MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    gateway:
+      # 全局 CORS（替代各服务的 CorsConfig）
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:5173"
+              - "http://localhost:5174"
+              - "http://localhost"
+              - "http://localhost:80"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      # 路由规则（Vite 已去掉 /api 前缀，直接路由）
+      routes:
+        - id: user-service
+          uri: lb://smart-volunteer-user
+          predicates:
+            - Path=/user/**
+
+        - id: activity-service
+          uri: lb://smart-volunteer-activity
+          predicates:
+            - Path=/activity/**
+
+        - id: ai-service
+          uri: lb://smart-volunteer-ai
+          predicates:
+            - Path=/ai/**
+
+        - id: credit-service
+          uri: lb://smart-volunteer-credit
+          predicates:
+            - Path=/credit/**
