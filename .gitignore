@@ -1,0 +1,66 @@
+# === Java 编译产物 ===
+target/
+*.class
+*.jar
+*.war
+
+# === IDE ===
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# === 前端 ===
+node_modules/
+dist/
+
+# === Python ===
+__pycache__/
+.venv/
+*.whl
+*.pyc
+*.npy
+
+# === 敏感配置（本地，不提交） ===
+application.yml
+application.properties
+.env
+
+# === 日志 & 运行时 ===
+*.log
+logs/
+work/
+dump.rdb
+derby.log
+*.rdb
+
+# === 临时文件 ===
+monitor_metrics.csv
+repomix-code.txt
+repomix-output-2.txt
+repomix-output-3.txt
+repomix.config.json
+*.tmp
+
+# === 文档（仅保留 README） ===
+COMPLETE_DESIGN_DOC.md
+PROJECT_NOTES.md
+SMART_VOLUNTEER_智能助手功能文档.md
+总文档.md
+UML-架构设计文档-ds.txt
+UML架构设计文档-cc.txt
+
+# === 非代码目录 ===
+benchmark/
+docker/
+论文内容/
+sql/
+docker-compose.yml
+Dockerfile
+
+# === OS ===
+.DS_Store
+Thumbs.db
