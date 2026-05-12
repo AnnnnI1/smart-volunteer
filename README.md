@@ -95,7 +95,38 @@ smart-volunteer/
 
 ## 快速开始
 
-### 环境依赖
+### 方式一：Docker Compose（推荐）
+
+无需安装 MySQL/Redis/Nacos/RocketMQ，一键启动全部服务：
+
+```bash
+# 1. 配置环境变量
+cp .env.docker .env
+# 编辑 .env，填入 DeepSeek API Key（其他可用默认值）
+
+# 2. 编译后端（需要 Java 17 + Maven）
+cd smart-volunteer-backend
+mvn clean package -DskipTests
+cd ..
+
+# 3. 一键启动所有服务
+docker-compose up -d
+
+# 4. 查看日志
+docker-compose logs -f
+
+# 5. 停止所有服务
+docker-compose down
+```
+
+首次启动后访问 `http://localhost`（前端），各服务端口：
+- 前端 Nginx：80
+- Gateway：9090
+- Nacos 控制台：8848（账密 nacos/nacos）
+
+### 方式二：手动启动
+
+#### 环境依赖
 
 - Java 17
 - Python 3.8+

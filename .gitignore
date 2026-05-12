@@ -55,11 +55,8 @@ UML架构设计文档-cc.txt
 
 # === 非代码目录 ===
 benchmark/
-docker/
 论文内容/
 sql/
-docker-compose.yml
-Dockerfile
 
 # === OS ===
 .DS_Store
